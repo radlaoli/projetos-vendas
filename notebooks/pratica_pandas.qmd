@@ -1,0 +1,129 @@
+
+```{python}
+from pathlib import Path
+import pandas as pd
+
+data_path = Path.cwd().parent / "data" / "online_retail.xlsx" if Path.cwd().name == "notebooks" else Path("data/online_retail.xlsx")
+
+column_names = {
+    "InvoiceNo": "invoice_no",
+    "StockCode": "stock_code",
+    "Description": "description",
+    "Quantity": "quantity",
+    "InvoiceDate": "invoice_date",
+    "UnitPrice": "unit_price",
+    "CustomerID": "customer_id",
+    "Country": "country",
+}
+
+retail = pd.read_excel(data_path).rename(columns=column_names)
+```
+
+
+```{python}
+retail.head()
+```
+
+```{python}
+retail.tail()
+```
+
+
+```{python}
+retail.shape
+```
+
+
+```{python}
+retail.info()
+```
+
+
+```{python}
+retail.isna().sum().sort_values(ascending=False)
+```
+
+```{python}
+retail.describe()
+```
+
+
+```{python}
+retail["country"].value_counts().head(10)
+```
+
+
+```{python}
+retail["country"].nunique()
+```
+
+
+```{python}
+germany_filter = retail["country"].eq("Germany")
+germany_sales = retail.loc[germany_filter].copy()
+germany_sales.shape
+```
+
+
+```{python}
+expensive_outside_uk_filter = (
+    retail["unit_price"].gt(100)
+    & retail["country"].ne("United Kingdom")
+)
+
+result_columns = ["invoice_no", "description", "unit_price", "country"]
+expensive_outside_uk = retail.loc[
+    expensive_outside_uk_filter,
+    result_columns,
+].copy()
+
+expensive_outside_uk.head()
+```
+
+
+```{python}
+negative_quantity_filter = retail["quantity"].lt(0)
+negative_quantity = retail.loc[negative_quantity_filter].copy()
+
+print(f"{len(negative_quantity):,} linhas com quantidade negativa")
+```
+
+
+```{python}
+negative_quantity.head()
+```
+
+
+```{python}
+negative_invoices = retail.loc[negative_quantity_filter, "invoice_no"]
+```
+
+
+```{python}
+starts_with_c = negative_invoices.str.startswith("C", na=False)
+
+print(f"Começam com C: {starts_with_c.sum():,}")
+print(f"Total de negativas: {len(negative_invoices):,}")
+```
+
+
+
+```{python}
+zero_price_filter = retail["unit_price"].eq(0)
+zero_price = retail.loc[zero_price_filter].copy()
+
+print(f"{len(zero_price):,} linhas com preço zero")
+```
+
+
+```{python}
+zero_price.loc[
+    :, ["invoice_no", "description", "quantity", "customer_id"]
+].head()
+```
+
+
+```{python}
+duplicate_count = retail.duplicated().sum()
+print(f"{duplicate_count:,} linhas duplicadas")
+```
